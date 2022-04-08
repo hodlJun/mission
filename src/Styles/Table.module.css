@@ -1,6 +1,7 @@
 .table {
   width: 100%;
   text-align: center;
+  border-collapse: collapse;
 }
 
 .table table {
@@ -15,6 +16,15 @@
   text-align: start;
 }
 
-.row td {
-  overflow-x: scroll;
+.table th {
+  padding: 0.5em 0;
+  border-bottom: 1px solid black;
+}
+
+.table td {
+  padding: 0.5em 0;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid #e7eaf3;
 }

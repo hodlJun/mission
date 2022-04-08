@@ -17,27 +17,76 @@ const Routing = () => {
 
 export default Routing;
 
-// 개선작업 시작전 데이터 일치하는지 이더스캔이랑 비교
-// 파라미터는 _넣어주고, redux 써서 arowana decimal 같은건 적용시킬지 정할것
-// contract 를 매번 불러올지 아니면 한번 부르고 나머지는 메소드 실행만 하게할지
-// async await 줄이기
-// => 지금은 매번 getContact 함수를 불러서하는형태임
-// useCallback이 정말 필요한곳만 적용하여 코드줄이기
-// 코드 개선부분 찾을것
-// aync await 이어지는부분이 아닌 개별이면 promise.all 혹은 promise.allsettled 로 묶기
-// loading 컴포넌트 추가
-
-// 소요된 가스비는 gas price * used gas 하면된다.
-// 얼마를, 몇번 pool 인지 나오지 않으면 보여주지 않고
-// 예상 reward 값은 해당 pool 일시만 나온다(pid, amount 이 필요) => userinfo 에서 요청
-
-// txfee 계산 값 불일치 => 해결 // gasUsed * cumulativeGasUsed = tx fee;
-//
-
-// 표제목인 caption 태그가 반드시 들어가야 한다.
-// th와 td의 방향관계를 알 수 있도록 scope 속성을 제공해줘야 한다.
-
 // --------남은사항 ----------
+// 개선작업 시작전 데이터 일치하는지 이더스캔이랑 비교
 // 예상 reward 값이 해당 트랜잭션이 일어났을때의 reward 값이 아니고
 // 모든 트랜잭션들이 다 이루어진 현재 상태의 예상 reward 값을 가지고 와서 의미가 없다.
+// 2022. 4. 4.	0x0b1c628e37c24d0ea2ca74e87564241dc7188885	7081.539	3	-	0.010015026731443604
+// 위에 Tx 정보같이 소수점 맨마지막이 1정도 차이나는 오차는 있을 수 있다.
+
+// Promise 해체부분 undefined 반환되는거 고칠것
 // MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 101 "connect" listeners added. Use emitter.setMaxListeners() to increase limit.
+
+/* PPT 만들때 참고 */
+// Add가 Pool 로 표기되고 다른
+//web3가 깔려있어야 메타마스크가 인식이 된다.
+// web3에서 인식하는것이 있다.
+// 예상 reward 값, 각 이벤트당 소요된 가스비
+// web3에서 이벤트감지하는 함수 사용하면 알수있다.
+// contract abi 에서 148번줄 => add가 Pool로 표기되어 이벤트시에도 Pool로 표기예상
+// pool => Add
+// deposit => Deposit
+// widthdraw => Widthdraw
+
+// APR 연이율
+// CAP 가능수량
+// reward 예상수익량
+
+// _pid ( pool id )
+// amount 입금량
+// decimal 소수점
+
+// deposit pool에 입금한다.
+// withdraw 출금
+// poolinfo 풀정보조회
+
+// reward, amount 는 컨트랙트 userinfo 에 넣으면 조회가능하다.
+// 해당 트랜잭션의 pid는 input data에서 조회가능
+
+// 컨트랙트 Add 메소드가 allEvent로 가져오면 Pool 로 표시된다.
+
+// 3개만 가져올것으로
+
+// time, from address / value / pid / 예상 reward / 각 이벤트당 소요된 가스비
+// approve, deposit, withdraw
+
+/* 
+  
+  time: web.eth.getBlock(number)
+  fromaddress: 트랜잭션에서 출발지 가져올것
+  얼마 => amount ? uint 256 => decimal로 잘라서
+  
+  */
+
+// yourNumber = parseInt(hexString, 16);
+
+// add 일시는 양 없음
+// deposit 일때는 있음
+// returnValues 에서 찾으면 pid 랑 나옴
+
+/* 
+  // 이벤트에 해당되는 트랜잭션들 배열로 가져옴 ( 출발지 도착지 X)
+  1. 순서대로 해당 객체의 블록넘버를 가져옴
+  2. 해당 블록의 타임스탬프 가져옴 ( time이 됨)
+  3. 컨트랙트내의 트랜잭션 주소와 블록안의 트랜잭션들에서 동일한 트랜잭션 주소를 가진 객체를 찾고 해당 객체의 from 값을 받아옴
+  4. 
+  
+  */
+
+// value pid 예상 reward 각 이벤트당 소요된 가스비 남음
+
+// 예상 reward는 그 트랜잭션 당시의 reward가 아닌 현재 최신 스냅샷의 예상 reward라서
+// 트랜잭션마다 예상 reward를 불러오는건 큰 의미가 없다.
+// 여전히 메모리 누수의 경고는 뜬다.
+// 예상으로는 decimal 불러오는 부분을 promise로 똑같이 묶어서 실행시키면 될거같다.
+// decimal 함수안에 web3.utill 이 여러번 불러져서 그런거같다.

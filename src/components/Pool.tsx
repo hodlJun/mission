@@ -10,11 +10,12 @@ import { dayDiff } from '../utils/ConvertDate';
 import { convertToDate } from '../utils/ConvertDate';
 import Table from './table/Table';
 import TableBody from './table/TableBody';
-import classes from '../Styles/Loading.module.css';
+import classes from '../Styles/Table.module.css';
 
 const Pool = () => {
   const [isLoading, setisLoading] = useState(false);
   const [list, setList] = useState([]);
+  const [error, setError] = useState(false);
 
   const caption = 'Pool Info';
   const th = [
@@ -30,52 +31,53 @@ const Pool = () => {
     { id: 'h10', title: 'Amount', width: 20 },
   ];
 
-  const poolLength = useCallback(async () => {
-    const contract = await getContract();
-    const poolLength = await getPoolLength(contract as any);
-
-    return poolLength;
-  }, []);
-
   const poolInfo = useCallback(async (_poolNumber: number) => {
-    const contract = await getContract();
-    const array = [];
-    const arowanaDec = await arowanaDecimal();
-    for (let i = 0; i < _poolNumber; i++) {
-      const obj = await getPoolInfo(contract as any, i);
-      const convertCap = await decimal(obj.cap, arowanaDec);
-      const convertAmount = await decimal(obj.amount, arowanaDec);
-      obj.id = 'p' + i;
-      obj.cap = convertCap;
-      obj.amount = convertAmount;
-      array.push(obj);
+    try {
+      const contract = getContract();
+      const array = [];
+      const arowanaDec = await arowanaDecimal();
+
+      for (let i = 0; i < _poolNumber; i++) {
+        const obj = await getPoolInfo(contract as any, i);
+        const convertCap = decimal(obj.cap, arowanaDec);
+        const convertAmount = decimal(obj.amount, arowanaDec);
+
+        obj.id = 'p' + i;
+        obj.cap = convertCap;
+        obj.amount = convertAmount;
+        array.push(obj);
+      }
+
+      return array;
+    } catch (err) {
+      setError(true);
     }
-    return array;
   }, []);
 
   const loadPool = useCallback(async () => {
     setisLoading(true);
-    const length = await poolLength();
-    const poolData = await poolInfo(length as any);
+    const contract = getContract();
+    const length = await getPoolLength(contract as any);
+    const poolData: any = await poolInfo(length as any);
 
-    if (poolData.length > 0 && list.length === 0) {
+    if (poolData !== undefined && poolData.length > 0) {
       setList(poolData as any);
       setisLoading(false);
     }
-  }, [list, poolInfo, poolLength]);
+  }, [poolInfo]);
 
   useEffect(() => {
     loadPool();
-
     return () => {};
   }, [loadPool]);
 
   return (
     <>
-      <Table caption={caption} thead={th}>
+      <Table className={classes.table} caption={caption} thead={th}>
         {
           <tbody>
             {list.length > 0 &&
+              !error &&
               list.map((info: any, key: any) => {
                 const open = convertToDate(info.open);
                 const start = convertToDate(info.start);
@@ -101,24 +103,19 @@ const Pool = () => {
         }
       </Table>
       {isLoading && list.length === 0 && (
-        <p className={classes.loading}>isLoading...</p>
+        <p
+          style={{
+            padding: '10rem',
+            textAlign: 'center',
+            fontWeight: 'bold',
+            fontSize: '1.2rem',
+          }}
+        >
+          isLoading...
+        </p>
       )}
+      {!isLoading && error && <p>Error. please refresh this page.</p>}
     </>
   );
 };
 export default Pool;
-
-// <div key={key} style={{ display: 'flex' }}>
-//   <div style={{ margin: '5px' }}>{open}</div>
-//   <div style={{ margin: '5px' }}>{start}</div>
-//   <div style={{ margin: '5px' }}>{end}</div>
-//   <div style={{ margin: '5px' }}>{info.open}</div>
-//   <div style={{ margin: '5px' }}>{info.start}</div>
-//   <div style={{ margin: '5px' }}>{info.end}</div>
-//   <div style={{ margin: '5px' }}>
-//     {diff}
-//   </div>
-//   <div style={{ margin: '5px' }}>{info.apr}</div>
-//   <div style={{ margin: '5px' }}>{info.cap}</div>
-//   <div style={{ margin: '5px' }}>{info.amount}</div>
-// </div>

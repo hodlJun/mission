@@ -9,7 +9,6 @@ export const getWeb3 = () => {
 };
 
 export const getContract = (_contractName = 'main') => {
-  // 다른곳에서도 쓸수있게 chaindId 검증기능 추가필요
   const web3 = getWeb3();
   let ContractABI = PoolContractABI as unknown as AbiItem;
   let Address = process.env.REACT_APP_MAINNET_POOL_CONTRACT_ADDRESS;
@@ -27,26 +26,25 @@ export const getContract = (_contractName = 'main') => {
   return contract;
 };
 
-export const getPoolLength = async (_contract: Contract) => {
-  return await _contract.methods.poolLength().call();
+export const getPoolLength = (_contract: Contract) => {
+  return _contract.methods.poolLength().call();
 };
 
-export const getPoolInfo = async (_contract: Contract, _number: number) => {
-  const obj = await _contract.methods.poolInfo(_number).call();
+export const getPoolInfo = (_contract: Contract, _number: number) => {
+  const obj = _contract.methods.poolInfo(_number).call();
   return obj;
 };
 
-export const arowanaDecimal = async () => {
+export const arowanaDecimal = () => {
   const contract = getContract('arowana');
-  const result = await contract.methods.decimals().call(); // exe revert
+  const result = contract.methods.decimals().call();
   return result;
 };
 
-export const decimal = async (_wei: any, _decimal: number = 18) => {
+export const decimal = (_wei: any, _decimal: number = 18) => {
   const web3 = getWeb3();
-  if (+_decimal === 18) {
-    const result = await web3.utils.fromWei(_wei.toString(), 'ether');
+  if (+_decimal === 18 && _wei !== undefined) {
+    const result = web3.utils.fromWei(_wei.toString(), 'ether');
     return result;
   }
-  // 다른 decimal에 대한 값 추가해야함
 };
