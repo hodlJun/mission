@@ -22,13 +22,11 @@ const Pool = () => {
     { id: 'h1', title: '오픈일', width: 10 },
     { id: 'h2', title: '시작일', width: 10 },
     { id: 'h3', title: '종료일', width: 10 },
-    { id: 'h4', title: '오픈유닉스', width: 10 },
-    { id: 'h5', title: '시작유닉스', width: 10 },
-    { id: 'h6', title: '종료유닉스', width: 10 },
-    { id: 'h7', title: '기간', width: 5 },
-    { id: 'h8', title: 'APR', width: 5 },
-    { id: 'h9', title: 'CAP', width: 10 },
-    { id: 'h10', title: 'Amount', width: 20 },
+    { id: 'h4', title: '기간', width: 10 },
+    { id: 'h5', title: 'APR', width: 10 },
+    { id: 'h6', title: 'CAP', width: 10 },
+    { id: 'h7', title: 'Amount', width: 20 },
+    { id: 'h7', title: 'FinalAmount', width: 20 },
   ];
 
   const poolInfo = useCallback(async (_poolNumber: number) => {
@@ -41,10 +39,11 @@ const Pool = () => {
         const obj = await getPoolInfo(contract as any, i);
         const convertCap = decimal(obj.cap, arowanaDec);
         const convertAmount = decimal(obj.amount, arowanaDec);
-
+        const convertFinalAmount = decimal(obj.finalAmount, arowanaDec);
         obj.id = 'p' + i;
         obj.cap = convertCap;
         obj.amount = convertAmount;
+        obj.finalAmount = convertFinalAmount;
         array.push(obj);
       }
 
@@ -87,13 +86,11 @@ const Pool = () => {
                   open,
                   start,
                   end,
-                  info.open,
-                  info.start,
-                  info.end,
                   diff,
                   info.apr,
                   info.cap,
                   info.amount,
+                  info.finalAmount,
                 ];
                 return (
                   <TableBody key={key} bkey={info.id} tbody={td}></TableBody>
