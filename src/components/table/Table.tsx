@@ -3,9 +3,14 @@ import TableHead from '../table/TableHead';
 
 const Table = (props: any) => {
   return (
-    <div>
-      <table className={classes.table}>
-        <caption>{props.caption}</caption>
+    <>
+      <table
+        className={classes.table}
+        style={{
+          width: props.mini ? '70%' : '100%',
+        }}
+      >
+        {props.caption && <caption>{props.caption}</caption>}
         <thead>
           <tr>
             {props.thead.map((arr: any, index: any) => {
@@ -21,7 +26,7 @@ const Table = (props: any) => {
         </thead>
         {props.children}
       </table>
-    </div>
+    </>
   );
 };
 

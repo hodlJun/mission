@@ -10,7 +10,6 @@ import { dayDiff } from '../utils/ConvertDate';
 import { convertToDate } from '../utils/ConvertDate';
 import Table from './table/Table';
 import TableBody from './table/TableBody';
-import classes from '../Styles/Table.module.css';
 
 const Pool = () => {
   const [isLoading, setisLoading] = useState(false);
@@ -19,14 +18,16 @@ const Pool = () => {
 
   const caption = 'Pool Info';
   const th = [
+    { id: 'h0', title: 'PID', width: 5 },
     { id: 'h1', title: '오픈일', width: 10 },
     { id: 'h2', title: '시작일', width: 10 },
     { id: 'h3', title: '종료일', width: 10 },
-    { id: 'h4', title: '기간', width: 10 },
-    { id: 'h5', title: 'APR', width: 10 },
-    { id: 'h6', title: 'CAP', width: 10 },
-    { id: 'h7', title: 'Amount', width: 20 },
-    { id: 'h7', title: 'FinalAmount', width: 20 },
+    { id: 'h4', title: '기간', width: 5 },
+    { id: 'h5', title: 'APR', width: 5 },
+    { id: 'h6', title: 'CAP', width: 5 },
+    { id: 'h7', title: 'FinalAmount', width: 17.5 },
+    { id: 'h8', title: 'Amount', width: 17.5 },
+    { id: 'h9', title: '비율', width: 15 },
   ];
 
   const poolInfo = useCallback(async (_poolNumber: number) => {
@@ -40,10 +41,14 @@ const Pool = () => {
         const convertCap = decimal(obj.cap, arowanaDec);
         const convertAmount = decimal(obj.amount, arowanaDec);
         const convertFinalAmount = decimal(obj.finalAmount, arowanaDec);
+        const ratio =
+          (parseFloat(convertFinalAmount) / parseFloat(convertCap)) * 100;
+
         obj.id = 'p' + i;
         obj.cap = convertCap;
         obj.amount = convertAmount;
         obj.finalAmount = convertFinalAmount;
+        obj.ratio = ratio;
         array.push(obj);
       }
 
@@ -72,28 +77,36 @@ const Pool = () => {
 
   return (
     <>
-      <Table className={classes.table} caption={caption} thead={th}>
+      <Table caption={caption} thead={th}>
         {
           <tbody>
             {list.length > 0 &&
               !error &&
               list.map((info: any, key: any) => {
+                const id = info.id.slice(1);
                 const open = convertToDate(info.open);
                 const start = convertToDate(info.start);
                 const end = convertToDate(info.end);
                 const diff = dayDiff(info.end, info.start);
                 const td = [
+                  id,
                   open,
                   start,
                   end,
                   diff,
                   info.apr,
                   info.cap,
-                  info.amount,
                   info.finalAmount,
+                  info.amount,
+                  info.ratio,
                 ];
                 return (
-                  <TableBody key={key} bkey={info.id} tbody={td}></TableBody>
+                  <TableBody
+                    key={key}
+                    bkey={info.id}
+                    tbody={td}
+                    spanValue={th.length}
+                  />
                 );
               })}
           </tbody>

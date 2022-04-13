@@ -90,3 +90,7 @@ export default Routing;
 // 여전히 메모리 누수의 경고는 뜬다.
 // 예상으로는 decimal 불러오는 부분을 promise로 똑같이 묶어서 실행시키면 될거같다.
 // decimal 함수안에 web3.utill 이 여러번 불러져서 그런거같다.
+
+// table class 중복 사용가능성
+// 테이블이 pid 밑에 크기로 고정되는 문제
+// 출금일자는 해당 pid에서 해당 from 주소의 widthdraw 가 일어난 날짜 <= 결국 추적해야함

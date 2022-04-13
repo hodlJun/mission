@@ -43,8 +43,7 @@ export const arowanaDecimal = () => {
 
 export const decimal = (_wei: any, _decimal: number = 18) => {
   const web3 = getWeb3();
-  if (+_decimal === 18 && _wei !== undefined) {
-    const result = web3.utils.fromWei(_wei.toString(), 'ether');
-    return result;
-  }
+  // 18로 고정하여 계산 추후에 수정
+  const result = web3.utils.fromWei(_wei.toString(), 'ether');
+  return result;
 };
