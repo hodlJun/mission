@@ -5,10 +5,6 @@ import Plus from '../../Assets/plus.png';
 import Minus from '../../Assets/minus.png';
 
 const TableBody = (props: any) => {
-  // 1. 활성 state
-  // 2. 로딩 state
-  // 3. date state
-
   const th = [
     { id: 'm0', title: 'No', width: 5 },
     { id: 'm1', title: '지갑주소', width: 25 },
@@ -51,7 +47,11 @@ const TableBody = (props: any) => {
         <tr>
           <td colSpan={props.spanValue}>
             <div className={classes['table-wrapper']}>
-              <PoolTable className={classes.table} thead={th} />
+              <PoolTable
+                className={classes.table}
+                thead={th}
+                td={props.userpool}
+              />
             </div>
           </td>
         </tr>

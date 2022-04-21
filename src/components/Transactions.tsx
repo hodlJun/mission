@@ -6,7 +6,8 @@ import {
   getDepositWithdraw,
   getReward,
 } from '../utils/EventSubscription';
-import { convertToDate } from '../utils/ConvertDate';
+import { timestampHelper } from '../utils/ConvertDate';
+import { requestInfo } from '../helper/Api';
 import Table from '../components/table/Table';
 import TableBody from '../components/table/TableBody';
 import classes from '../Styles/Table.module.css';
@@ -54,17 +55,21 @@ const Transactions = () => {
       const arowanaDec = await arowanaDecimal();
 
       for (let i = 0; i < timestamp_pid_amount.length; i++) {
-        const { timestamp, pid } = timestamp_pid_amount[i];
+        const { timestamp: txdate, pid } = timestamp_pid_amount[i];
         let { amount }: any = timestamp_pid_amount[i];
         let reward: any = '-';
-        const { gasUsed, effectiveGasPrice, from } = from_gasUsed_gasPrice[i];
+        const {
+          gasUsed,
+          effectiveGasPrice,
+          from: fromaddress,
+        } = from_gasUsed_gasPrice[i];
         const txFee = gasUsed * effectiveGasPrice;
         const convertedTxFee = decimal(txFee, arowanaDec);
-        const event = result[i].event;
+        const eventname = result[i].event;
 
         if (amount !== '-') {
           amount = decimal(amount, arowanaDec);
-          reward = await getReward(pid, from).then((reward) => {
+          reward = await getReward(pid, fromaddress).then((reward) => {
             if (reward !== '-') {
               return decimal(reward, arowanaDec);
             }
@@ -74,13 +79,13 @@ const Transactions = () => {
 
         ArrayObject.push({
           id: 't' + i,
-          timestamp,
-          from,
+          txdate,
+          fromaddress,
           amount,
           pid,
           reward,
-          txFee: convertedTxFee,
-          event,
+          txfee: convertedTxFee,
+          eventname,
         });
       }
 
@@ -90,7 +95,8 @@ const Transactions = () => {
     }
   }, []);
 
-  const LoadTxs = useCallback(async () => {
+  const loadTxs = useCallback(async () => {
+    // 직접 메인넷 호출
     setisLoading(true);
     const events = await getEvents();
     const data: any = await filteredTxs(events as any);
@@ -101,10 +107,28 @@ const Transactions = () => {
     }
   }, [filteredTxs]);
 
+  const loadAPI = useCallback(async () => {
+    // API 호출
+    let result;
+    setisLoading(true);
+    try {
+      result = await requestInfo('txs');
+
+      if (result.txs.length > 0) {
+        setTxs(result.txs);
+      }
+    } catch (err) {
+      result = err;
+      throw new Error(`${result}`);
+    } finally {
+      setisLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    LoadTxs();
+    loadAPI().catch(() => loadTxs());
     return () => {};
-  }, [LoadTxs]);
+  }, [loadAPI, loadTxs]);
 
   return (
     <>
@@ -114,15 +138,16 @@ const Transactions = () => {
             {txs.length > 0 &&
               !error &&
               txs.map((tx: any, key: any) => {
-                const timestamp = convertToDate(tx.timestamp);
+                const timestamp = timestampHelper(tx.txdate);
+
                 const td = [
                   timestamp,
-                  tx.from,
+                  tx.fromaddress,
                   tx.amount,
                   tx.pid,
                   tx.reward,
-                  tx.txFee,
-                  tx.event,
+                  tx.txfee,
+                  tx.eventname,
                 ];
                 return (
                   <TableBody key={key} bkey={tx.id} tbody={td}></TableBody>

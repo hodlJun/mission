@@ -6,14 +6,14 @@ import {
   arowanaDecimal,
   decimal,
 } from '../utils/Web3';
-import { dayDiff } from '../utils/ConvertDate';
-import { convertToDate } from '../utils/ConvertDate';
+import { dayDiff, timestampHelper } from '../utils/ConvertDate';
+import { requestInfo } from '../helper/Api';
 import Table from './table/Table';
 import TableBody from './table/TableBody';
 
 const Pool = () => {
   const [isLoading, setisLoading] = useState(false);
-  const [list, setList] = useState([]);
+  const [pool, setPool] = useState([]);
   const [error, setError] = useState(false);
 
   const caption = 'Pool Info';
@@ -59,35 +59,68 @@ const Pool = () => {
   }, []);
 
   const loadPool = useCallback(async () => {
+    // 직접 메인넷 호출
+    console.log('loadPool 호출');
     setisLoading(true);
     const contract = getContract();
     const length = await getPoolLength(contract as any);
     const poolData: any = await poolInfo(length as any);
 
     if (poolData !== undefined && poolData.length > 0) {
-      setList(poolData as any);
+      setPool(poolData as any);
       setisLoading(false);
     }
   }, [poolInfo]);
 
+  const loadAPI = useCallback(async () => {
+    // API 호출
+    let result;
+    setisLoading(true);
+    try {
+      result = await requestInfo('pool');
+
+      if (result.pool.length > 0) {
+        setPool(result.pool);
+      }
+    } catch (err) {
+      result = err;
+      throw new Error(`${result}`);
+    } finally {
+      setisLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    loadPool();
+    loadAPI().catch(() => loadPool());
     return () => {};
-  }, [loadPool]);
+  }, [loadAPI, loadPool]);
 
   return (
     <>
       <Table caption={caption} thead={th}>
         {
           <tbody>
-            {list.length > 0 &&
+            {pool !== undefined &&
+              pool.length > 0 &&
               !error &&
-              list.map((info: any, key: any) => {
-                const id = info.id.slice(1);
-                const open = convertToDate(info.open);
-                const start = convertToDate(info.start);
-                const end = convertToDate(info.end);
-                const diff = dayDiff(info.end, info.start);
+              pool.map((info: any, key: any) => {
+                const id =
+                  typeof info.id !== 'string'
+                    ? Number(info.pid)
+                    : info.id.slice(1);
+                const open = timestampHelper(info.open);
+                const start = timestampHelper(info.start);
+                const end = timestampHelper(info.end);
+                let diff = dayDiff(info.end, info.start);
+
+                if (info.diff !== undefined) {
+                  diff = info.diff;
+                }
+
+                if (info.finalAmount === undefined) {
+                  info.finalAmount = info.finalamount;
+                }
+
                 const td = [
                   id,
                   open,
@@ -105,6 +138,7 @@ const Pool = () => {
                     key={key}
                     bkey={info.id}
                     tbody={td}
+                    userpool={info.pooluser}
                     spanValue={th.length}
                   />
                 );
@@ -112,7 +146,7 @@ const Pool = () => {
           </tbody>
         }
       </Table>
-      {isLoading && list.length === 0 && (
+      {isLoading && pool.length === 0 && (
         <p
           style={{
             padding: '10rem',
